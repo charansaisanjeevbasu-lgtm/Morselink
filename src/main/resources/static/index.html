@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Code Pro — Two-Way Telegraph Converter</title>
+<link rel="stylesheet" href="css/telegraph.css">
+</head>
+<body>
+<div class="vignette"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="21" class="bm-ring"/>
+      <circle cx="14" cy="24" r="3.4" class="bm-dot"/>
+      <rect x="22" y="21" width="15" height="6" rx="3" class="bm-dash"/>
+    </svg>
+    <div class="brand-text">
+      <h1>MORSE&nbsp;CODE&nbsp;PRO</h1>
+      <p>two-way converter · live telegraph bench</p>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="control instrument-switch" role="tablist" aria-label="Instrument">
+      <button class="chip is-active" data-instrument="key" role="tab" aria-selected="true">Straight Key</button>
+      <button class="chip" data-instrument="paddle" role="tab" aria-selected="false">Dual Paddle</button>
+    </div>
+
+    <label class="control">
+      <span class="control-label">Speed <b id="wpmValue">15</b> wpm</span>
+      <input id="wpm" type="range" min="5" max="30" value="15" step="1">
+      <span class="control-hint">dot = <b id="unitValue">80</b> ms</span>
+    </label>
+
+    <label class="control">
+      <span class="control-label">Tone <b id="toneValue">600</b> Hz</span>
+      <input id="tone" type="range" min="350" max="900" value="600" step="10">
+    </label>
+
+    <button id="mute" class="icon-btn" aria-pressed="false" title="Mute / unmute">
+      <svg class="ico-speaker" viewBox="0 0 24 24" aria-hidden="true">
+        <path class="spk-body" d="M11 5.4 L6.6 9.2 H3.6a.6.6 0 0 0-.6.6v4.4a.6.6 0 0 0 .6.6h3L11 18.6Z"/>
+        <path class="spk-wave" d="M14.1 9.4a3.7 3.7 0 0 1 0 5.2"/>
+        <path class="spk-wave" d="M16.7 6.9a7.3 7.3 0 0 1 0 10.2"/>
+        <path class="spk-slash" d="M14.8 9.9 L19.6 14.1 M19.6 9.9 L14.8 14.1"/>
+      </svg>
+      <span class="lbl">Sound on</span>
+    </button>
+  </div>
+</header>
+
+<main class="stage">
+
+  <!-- ─────────────── LEFT: the text side ─────────────── -->
+  <section class="panels">
+
+    <article class="card" data-side="english">
+      <div class="card-head">
+        <h2>English</h2>
+        <span class="badge" id="englishBadge">plain text</span>
+      </div>
+      <textarea id="english" class="field" spellcheck="false"
+                placeholder="Type here and watch it become Morse…"></textarea>
+      <div class="card-foot">
+        <span class="counter"><b id="englishCount">0</b> chars</span>
+        <div class="btn-row">
+          <button class="btn" data-play="english">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true">
+            <polygon class="ico-play" points="4.5,3 13,8 4.5,13"/>
+            <rect class="ico-stop" x="4.2" y="4.2" width="7.6" height="7.6" rx="1.5"/>
+          </svg>
+          <span class="lbl">Play on instrument</span>
+        </button>
+          <button class="btn ghost" data-copy="english">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true">
+            <g class="ico-copy">
+              <rect x="5.6" y="2.4" width="8" height="10" rx="1.7"/>
+              <path d="M10.6 13.6H3.9a1.5 1.5 0 0 1-1.5-1.5V5.1"/>
+            </g>
+            <path class="ico-check" d="M3 8.4 L6.4 11.8 L13 4.6"/>
+          </svg>
+          <span class="lbl">Copy</span>
+        </button>
+        </div>
+      </div>
+    </article>
+
+    <div class="flow" id="flow">
+      <div class="flow-line down" data-dir="toMorse">
+        <span class="flow-label">English → Morse</span>
+        <div class="flow-track"><i></i><i></i><i></i></div>
+      </div>
+      <button id="swap" class="swap" title="Swap direction" aria-label="Swap direction">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M5 13.2 V2.8 M5 2.8 L2.6 5.4 M5 2.8 L7.4 5.4"/>
+          <path d="M11 2.8 V13.2 M11 13.2 L8.6 10.6 M11 13.2 L13.4 10.6"/>
+        </svg>
+      </button>
+      <div class="flow-line up" data-dir="toText">
+        <span class="flow-label">Morse → English</span>
+        <div class="flow-track"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+
+    <article class="card" data-side="morse">
+      <div class="card-head">
+        <h2>Morse</h2>
+        <span class="badge" id="morseBadge">· dot &nbsp;— dash &nbsp;/ word</span>
+      </div>
+      <textarea id="morse" class="field mono" spellcheck="false"
+                placeholder="… or paste Morse here: .... . .-.. .-.. ---"></textarea>
+      <div class="card-foot">
+        <span class="counter"><b id="morseCount">0</b> symbols</span>
+        <div class="btn-row">
+          <button class="btn" data-play="morse">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true">
+            <polygon class="ico-play" points="4.5,3 13,8 4.5,13"/>
+            <rect class="ico-stop" x="4.2" y="4.2" width="7.6" height="7.6" rx="1.5"/>
+          </svg>
+          <span class="lbl">Play on instrument</span>
+        </button>
+          <button class="btn ghost" data-copy="morse">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true">
+            <g class="ico-copy">
+              <rect x="5.6" y="2.4" width="8" height="10" rx="1.7"/>
+              <path d="M10.6 13.6H3.9a1.5 1.5 0 0 1-1.5-1.5V5.1"/>
+            </g>
+            <path class="ico-check" d="M3 8.4 L6.4 11.8 L13 4.6"/>
+          </svg>
+          <span class="lbl">Copy</span>
+        </button>
+          <button class="btn ghost" id="clearAll">Clear</button>
+        </div>
+      </div>
+    </article>
+
+    <div class="statusbar" id="status">
+      <span class="dot-live"></span><span id="statusText">Ready — tap the key, or start typing.</span>
+    </div>
+  </section>
+
+  <!-- ─────────────── RIGHT: the bench ─────────────── -->
+  <section class="bench">
+    <div class="bench-head">
+      <h2 id="benchTitle">Telegraph Bench</h2>
+      <p id="benchHint">Press and <em>hold</em> the knob — a quick tap is a dot, a long hold is a dash.</p>
+    </div>
+
+    <div class="bench-stage" id="benchStage">
+      <div class="glow-floor"></div>
+
+      <!-- ── STRAIGHT KEY ── -->
+      <svg class="instrument" id="straightKey" viewBox="40 168 720 252" role="application"
+           aria-label="Brass straight telegraph key">
+        <defs>
+          <linearGradient id="oak" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#7d4f2a"/><stop offset=".45" stop-color="#5d3719"/>
+            <stop offset="1" stop-color="#3a2110"/>
+          </linearGradient>
+          <linearGradient id="oakTop" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#8a5a31"/><stop offset=".3" stop-color="#a06a38"/>
+            <stop offset=".62" stop-color="#7c4d27"/><stop offset="1" stop-color="#8f5c30"/>
+          </linearGradient>
+          <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe9a8"/><stop offset=".25" stop-color="#e3b352"/>
+            <stop offset=".55" stop-color="#a97a25"/><stop offset=".8" stop-color="#d8a94a"/>
+            <stop offset="1" stop-color="#7a5417"/>
+          </linearGradient>
+          <linearGradient id="brassLever" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#f6d789"/><stop offset=".35" stop-color="#cfa040"/>
+            <stop offset=".7" stop-color="#eac96f"/><stop offset="1" stop-color="#9c7526"/>
+          </linearGradient>
+          <linearGradient id="ebonite" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4a4a52"/><stop offset=".4" stop-color="#1d1d22"/>
+            <stop offset="1" stop-color="#0c0c0f"/>
+          </linearGradient>
+          <radialGradient id="knobShine" cx=".35" cy=".28" r=".8">
+            <stop offset="0" stop-color="#6d6d78"/><stop offset=".45" stop-color="#26262c"/>
+            <stop offset="1" stop-color="#07070a"/>
+          </radialGradient>
+          <radialGradient id="lampOn" cx=".5" cy=".4" r=".6">
+            <stop offset="0" stop-color="#fff6d8"/><stop offset=".35" stop-color="#ffd36b"/>
+            <stop offset=".36" stop-color="#ffb43c"/><stop offset="1" stop-color="#a1540a"/>
+          </radialGradient>
+          <radialGradient id="lampOff" cx=".5" cy=".4" r=".6">
+            <stop offset="0" stop-color="#4b4232"/><stop offset="1" stop-color="#1b1712"/>
+          </radialGradient>
+          <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%">
+            <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".55"/>
+          </filter>
+          <filter id="lampBloom" x="-120%" y="-120%" width="340%" height="340%">
+            <feGaussianBlur stdDeviation="14" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- desk shadow -->
+        <ellipse cx="380" cy="392" rx="300" ry="26" class="deskShadow"/>
+
+        <!-- wooden base -->
+        <g filter="url(#softShadow)">
+          <path d="M96 300 L664 300 L700 330 L60 330 Z" fill="url(#oakTop)"/>
+          <rect x="60" y="330" width="640" height="46" rx="7" fill="url(#oak)"/>
+          <rect x="60" y="330" width="640" height="46" rx="7" fill="none" stroke="#2a1608" stroke-width="2"/>
+          <g class="grain" stroke="#ffffff" stroke-opacity=".05">
+            <path d="M80 344 H680"/><path d="M92 356 H668"/><path d="M110 366 H650"/>
+          </g>
+        </g>
+
+        <!-- signal lamp on a bracket at the back corner -->
+        <g class="lamp" id="keyLamp" transform="translate(108,250)">
+          <rect x="-9" y="18" width="18" height="34" rx="4" fill="url(#brass)"/>
+          <rect x="-17" y="48" width="34" height="9" rx="3" fill="url(#brass)"/>
+          <circle class="lamp-glass" r="21" filter="url(#lampBloom)"/>
+          <circle class="lamp-rim" r="21" fill="none" stroke="#c99a3e" stroke-width="3.5"/>
+          <path class="lamp-filament" d="M-7 5 L-2 -5 L2 5 L7 -5" fill="none" stroke-width="2.5"/>
+          <ellipse cx="-7" cy="-8" rx="7" ry="4" fill="#fff" opacity=".18"/>
+        </g>
+
+        <!-- terminal posts + line wire -->
+        <g class="terminals">
+          <rect x="564" y="286" width="16" height="18" rx="3" fill="url(#brass)"/>
+          <circle cx="572" cy="284" r="9" fill="url(#brass)"/>
+          <rect x="604" y="286" width="16" height="18" rx="3" fill="url(#brass)"/>
+          <circle cx="612" cy="284" r="9" fill="url(#brass)"/>
+        </g>
+        <path class="wire" d="M612 284 C 672 284, 706 250, 760 242"/>
+
+        <!-- pivot pedestal -->
+        <g class="pivot">
+          <rect x="414" y="238" width="34" height="68" rx="5" fill="url(#brass)"/>
+          <rect x="404" y="296" width="54" height="12" rx="3" fill="url(#brass)"/>
+        </g>
+
+        <!-- anvil: the lower contact, screwed to the base -->
+        <g class="anvil">
+          <rect x="262" y="286" width="40" height="20" rx="4" fill="url(#brass)"/>
+          <rect x="268" y="278" width="28" height="9" rx="3" fill="#f0d68f"/>
+        </g>
+
+        <!-- spring assembly behind the pivot -->
+        <g class="springRig">
+          <rect x="498" y="274" width="12" height="32" rx="3" fill="url(#brass)"/>
+          <g class="spring" fill="none" stroke="#d9b45c" stroke-width="3.5">
+            <ellipse cx="504" cy="258" rx="11" ry="4"/>
+            <ellipse cx="504" cy="266" rx="11" ry="4"/>
+            <ellipse cx="504" cy="274" rx="11" ry="4"/>
+          </g>
+        </g>
+
+        <!-- ══ the moving lever ══ -->
+        <g class="lever" id="keyLever">
+          <rect x="168" y="245" width="360" height="15" rx="7" fill="url(#brassLever)"/>
+          <rect x="168" y="245" width="360" height="5" rx="2.5" fill="#fff2c4" opacity=".5"/>
+          <!-- trunnion collar over the pivot -->
+          <circle cx="431" cy="252" r="15" fill="url(#brass)"/>
+          <circle cx="431" cy="252" r="5" fill="#3c2a08"/>
+          <!-- upper contact, reaching down to the anvil -->
+          <rect x="268" y="258" width="26" height="22" rx="3" fill="#f3dc9c"/>
+          <!-- ebonite knob -->
+          <rect x="205" y="222" width="14" height="30" rx="5" fill="url(#brass)"/>
+          <rect x="205" y="222" width="5" height="30" rx="2.5" fill="#fff2c4" opacity=".45"/>
+          <ellipse cx="212" cy="228" rx="40" ry="9" fill="url(#ebonite)"/>
+          <ellipse cx="212" cy="222" rx="40" ry="9" fill="#2b2b32"/>
+          <path d="M172 222 A40 19 0 0 1 252 222 Z" fill="url(#knobShine)"/>
+          <ellipse cx="197" cy="214" rx="12" ry="4" fill="#ffffff" opacity=".16"/>
+          <ellipse class="fingerRing" cx="212" cy="218" rx="50" ry="16"/>
+          <!-- generous invisible pad so the knob is easy to hit with a cursor or a thumb -->
+          <rect class="hitPad" x="146" y="188" width="132" height="76" fill="transparent"/>
+        </g>
+
+        <!-- spark across the contact gap -->
+        <g class="spark" id="keySpark" transform="translate(281,280)">
+          <circle r="7" class="spark-core"/>
+          <g class="spark-rays" stroke-linecap="round">
+            <path d="M0 -16 V-7"/><path d="M0 16 V7"/><path d="M-16 0 H-7"/><path d="M16 0 H7"/>
+            <path d="M-11 -11 L-5 -5"/><path d="M11 11 L5 5"/>
+            <path d="M11 -11 L5 -5"/><path d="M-11 11 L-5 5"/>
+          </g>
+        </g>
+        <g class="ripples" id="keyRipples" transform="translate(281,288)"></g>
+      </svg>
+
+      <!-- ── DUAL PADDLE ── -->
+      <svg class="instrument is-hidden" id="dualPaddle" viewBox="140 126 600 290" role="application"
+           aria-label="Dual paddle iambic keyer">
+        <defs>
+          <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#d7dde6"/><stop offset=".4" stop-color="#8e99a8"/>
+            <stop offset="1" stop-color="#454c58"/>
+          </linearGradient>
+          <linearGradient id="steelTop" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#aab4c2"/><stop offset=".4" stop-color="#e2e8f0"/>
+            <stop offset="1" stop-color="#8e99a8"/>
+          </linearGradient>
+          <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3a4150"/><stop offset="1" stop-color="#161a22"/>
+          </linearGradient>
+          <linearGradient id="padRed" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ff8a6b"/><stop offset=".5" stop-color="#d7452a"/>
+            <stop offset="1" stop-color="#7c1e0e"/>
+          </linearGradient>
+          <linearGradient id="padBlue" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#8fd3ff"/><stop offset=".5" stop-color="#2f86c9"/>
+            <stop offset="1" stop-color="#11405f"/>
+          </linearGradient>
+          <radialGradient id="lampOnP" cx=".5" cy=".4" r=".6">
+            <stop offset="0" stop-color="#fff6d8"/><stop offset=".35" stop-color="#ffd36b"/>
+            <stop offset=".36" stop-color="#ffb43c"/><stop offset="1" stop-color="#a1540a"/>
+          </radialGradient>
+          <radialGradient id="lampOffP" cx=".5" cy=".4" r=".6">
+            <stop offset="0" stop-color="#39404c"/><stop offset="1" stop-color="#171b22"/>
+          </radialGradient>
+          <!-- each instrument carries its own filters: a reference into a hidden
+               sibling SVG resolves to nothing and the shape would not be drawn -->
+          <filter id="softShadowP" x="-30%" y="-30%" width="160%" height="180%">
+            <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".55"/>
+          </filter>
+          <filter id="lampBloomP" x="-120%" y="-120%" width="340%" height="340%">
+            <feGaussianBlur stdDeviation="12" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <ellipse cx="380" cy="388" rx="262" ry="22" class="deskShadow"/>
+
+        <!-- machined base -->
+        <g filter="url(#softShadowP)">
+          <path d="M200 300 L560 300 L600 330 L160 330 Z" fill="url(#steelTop)"/>
+          <rect x="160" y="330" width="440" height="44" rx="8" fill="url(#deck)"/>
+          <rect x="160" y="330" width="440" height="44" rx="8" fill="none" stroke="#0b0e14" stroke-width="2"/>
+          <rect x="176" y="338" width="408" height="3" rx="1.5" fill="#fff" opacity=".08"/>
+        </g>
+
+        <!-- centre post -->
+        <rect x="366" y="212" width="28" height="92" rx="5" fill="url(#steel)"/>
+        <circle cx="380" cy="212" r="13" fill="url(#steel)"/>
+        <circle cx="380" cy="212" r="4.5" fill="#2a2f39"/>
+
+        <!-- left paddle: DOT -->
+        <g class="paddle dot" id="paddleDot" data-symbol="dot">
+          <rect class="pad-arm" x="294" y="238" width="78" height="12" rx="6" fill="url(#steel)"/>
+          <rect class="pad-face" x="250" y="180" width="44" height="130" rx="12" fill="url(#padRed)"/>
+          <rect x="256" y="188" width="11" height="114" rx="5.5" fill="#fff" opacity=".16"/>
+          <circle class="pad-glyph" cx="272" cy="166" r="9"/>
+          <rect class="hitPad" x="232" y="140" width="80" height="182" fill="transparent"/>
+        </g>
+
+        <!-- right paddle: DASH -->
+        <g class="paddle dash" id="paddleDash" data-symbol="dash">
+          <rect class="pad-arm" x="388" y="238" width="78" height="12" rx="6" fill="url(#steel)"/>
+          <rect class="pad-face" x="466" y="180" width="44" height="130" rx="12" fill="url(#padBlue)"/>
+          <rect x="472" y="188" width="11" height="114" rx="5.5" fill="#fff" opacity=".16"/>
+          <rect class="pad-glyph" x="470" y="161" width="36" height="10" rx="5"/>
+          <rect class="hitPad" x="448" y="140" width="80" height="182" fill="transparent"/>
+        </g>
+
+        <text class="pad-caption" x="272" y="358">DOT</text>
+        <text class="pad-caption" x="488" y="358">DASH</text>
+
+        <g class="ripples" id="paddleRipples" transform="translate(380,250)"></g>
+
+        <!-- lamp -->
+        <g class="lamp" id="paddleLamp" transform="translate(566,256)">
+          <rect x="-8" y="16" width="16" height="30" rx="4" fill="url(#steel)"/>
+          <rect x="-15" y="42" width="30" height="9" rx="3" fill="url(#steel)"/>
+          <circle class="lamp-glass p" r="19" filter="url(#lampBloomP)"/>
+          <circle class="lamp-rim" r="19" fill="none" stroke="#9aa6b6" stroke-width="3.5"/>
+          <path class="lamp-filament" d="M-6 4 L-2 -4 L2 4 L6 -4" fill="none" stroke-width="2.5"/>
+        </g>
+        <path class="wire" d="M600 330 C 664 330, 694 300, 730 294"/>
+      </svg>
+    </div>
+
+    <!-- meters -->
+    <div class="meters">
+      <div class="meter is-hold" id="holdMeter">
+        <div class="meter-head">
+          <span class="meter-title" id="meterTitle">HOLD</span>
+          <span class="meter-time"><b id="meterMs">0</b> ms</span>
+        </div>
+        <div class="meter-track">
+          <div class="meter-fill" id="meterFill"></div>
+          <div class="meter-mark" id="markDash"><span>dash</span></div>
+          <div class="meter-mark alt" id="markLetter"><span>letter</span></div>
+          <div class="meter-mark alt2" id="markWord"><span>word</span></div>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="readout-box">
+          <span class="readout-label">Symbol</span>
+          <span class="readout-value mono" id="liveSymbols">—</span>
+        </div>
+        <div class="readout-box wide">
+          <span class="readout-label">Letter forming</span>
+          <span class="readout-value big" id="liveLetter">·</span>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="tape" class="tape" width="1200" height="120"
+            aria-label="Inker tape of the transmitted signal"></canvas>
+
+    <div class="ticker" id="ticker" aria-live="polite"></div>
+
+    <details class="chart">
+      <summary>Morse alphabet reference <span class="chart-note">(served from Java)</span></summary>
+      <div class="chart-grid" id="chartGrid"></div>
+    </details>
+  </section>
+</main>
+
+<script src="js/audio.js"></script>
+<script src="js/api.js"></script>
+<script src="js/tape.js"></script>
+<script src="js/instrument.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

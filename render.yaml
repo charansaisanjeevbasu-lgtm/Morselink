@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: morse-code-pro
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
